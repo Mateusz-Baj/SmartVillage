@@ -1,13 +1,14 @@
 import os
-import json
 import xml.etree.ElementTree as ET
 import geojson
-from shapely.geometry import shape, mapping
+from pyproj import Transformer
+
+# Transformacja współrzędnych z EPSG:2180 do EPSG:4326
+transformer = Transformer.from_crs("EPSG:2180", "EPSG:4326", always_xy=True)
 
 def parse_citygml(file_path):
     tree = ET.parse(file_path)
     root = tree.getroot()
-
 
     ns = {
         'gml': "http://www.opengis.net/gml",
@@ -16,7 +17,6 @@ def parse_citygml(file_path):
 
     buildings = []
 
-    # Iteracja przez budynki w CityGML
     for building in root.findall(".//bldg:Building", ns):
         data = {
             "id": building.get("gml:id"),
@@ -24,13 +24,15 @@ def parse_citygml(file_path):
             "attributes": {}
         }
 
-        # Pobranie geometrii
         for geom in building.findall(".//gml:Polygon", ns):
             pos_list = geom.find(".//gml:posList", ns)
             if pos_list is not None:
-                coords = pos_list.text.split()
-                coords = [(float(coords[i]), float(coords[i+1]), float(coords[i+2])) for i in range(0, len(coords), 3)]
-                data["geometry"].append(coords)
+                coords = list(map(float, pos_list.text.split()))
+                transformed_coords = [
+                    transformer.transform(coords[i], coords[i+1]) + (coords[i+2],)  # Transformacja XY, zachowanie Z
+                    for i in range(0, len(coords), 3)
+                ]
+                data["geometry"].append(transformed_coords)
 
         for child in building:
             if child.tag.startswith("{http://www.opengis.net/citygml/building/2.0}"):
@@ -41,47 +43,37 @@ def parse_citygml(file_path):
 
     return buildings
 
-
-def export_to_json(data, output_file):
-    with open(output_file, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-def convert_to_geojson(buildings):
+def convert_to_geojson(buildings, feature_id="1_3"):
     features = []
 
     for building in buildings:
-        for geom in building["geometry"]:
-            try:
-                polygon = {
-                    "type": "Polygon",
-                    "coordinates": [geom]
-                }
+        try:
+            for polygon in building["geometry"]:
                 feature = geojson.Feature(
-                    geometry=polygon,
-                    properties=building["attributes"]
+                    geometry={
+                        "type": "Polygon",
+                        "coordinates": [polygon]
+                    },
+                    properties={
+                        "name": building["id"]
+                    }
                 )
                 features.append(feature)
-            except Exception as e:
-                print(f"Error converting geometry: {e}")
+        except Exception as e:
+            print(f"Error converting geometry: {e}")
 
-    return geojson.FeatureCollection(features)
+    return geojson.FeatureCollection(features, id=feature_id)
 
 def save_geojson(geojson_data, output_file):
     with open(output_file, "w") as f:
-        geojson.dump(geojson_data, f)
+        geojson.dump(geojson_data, f, indent=4)
 
 if __name__ == "__main__":
-    input_file = "citygml.gml"
-    output_json = "j.json"
-    output_geojson = "gj.geojson"
+    input_file = "piskorzow_lod1.gml"
+    output_geojson = "piskorzow_lod1.geojson"
 
     if os.path.exists(input_file):
         buildings = parse_citygml(input_file)
-
-        export_to_json(buildings, output_json)
-        print(f"JSON saved to {output_json}")
-
         geojson_data = convert_to_geojson(buildings)
         save_geojson(geojson_data, output_geojson)
         print(f"GeoJSON saved to {output_geojson}")
