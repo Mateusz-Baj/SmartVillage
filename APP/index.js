@@ -1,7 +1,6 @@
 import { config, initialOrientation, initialPosition } from "./cesiumConfig.js";
 import { createSelectElement } from "./DropDown.js";
 import { pickFeatureById, hideBuildingInfo } from "./eventsConfig.js";
-import { imageryViewModels } from "./mapLayers.js";
 import { LayerManager } from './layerManager.js';
 
 Cesium.Ion.defaultAccessToken = config.cesiumToken;
@@ -18,7 +17,6 @@ async function initializeCesium() {
     infoBox: false,
     baseLayerPicker: false,
     navigationHelpButton: false,
-    imageryProviderViewModels: imageryViewModels
   });
 
   viewer.scene.camera.setView({
