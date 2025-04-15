@@ -16,6 +16,7 @@ async function initializeCesium() {
         animation: false,
         infoBox: false,
         baseLayerPicker: false,
+        imageryProvider: false,
         navigationHelpButton: false,
     });
 

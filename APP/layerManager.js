@@ -1,4 +1,3 @@
-
 export class LayerManager {
     constructor(viewer, dataSource) {
       this.viewer = viewer;
@@ -20,12 +19,12 @@ export class LayerManager {
             <label class="form-check-label" for="geojsonToggle">Warstwa budynków</label>
           </div>
           <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="adresyToggle">
-            <label class="form-check-label" for="adresyToggle">Punkty adresowe</label>
-          </div>
-          <div class="form-check">
             <input class="form-check-input" type="checkbox" id="openstretmap">
             <label class="form-check-label" for="adresyToggle">Open Stret Map</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="adresyToggle">
+            <label class="form-check-label" for="adresyToggle">Punkty adresowe</label>
           </div>
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="orto">
@@ -48,24 +47,30 @@ export class LayerManager {
               new Cesium.WebMapServiceImageryProvider({
                 url: 'https://mapy.geoportal.gov.pl/wss/ext/KrajowaIntegracjaNumeracjiAdresowej',
                 layers: 'prg-ulice',
-                transparent: false,
-                format: 'image/png',
-                SERVICE: 'WMS',
-                VERSION: '1.3.0',
-                CRS: 'EPSG:3857',
-                enablePickFeatures: false,
-                rectangle: Cesium.Rectangle.fromDegrees(14.0, 49.0, 24.0, 55.0) // Ogranicz do Polski
+                parameters: {
+                  service: 'WMS',
+                  version: '1.3.0',
+                  request: 'GetMap',
+                  styles: 'default',
+                  format: 'image/png',
+                  transparent: true
+                },
+                crs: 'EPSG:4326',
+                tilingScheme: new Cesium.GeographicTilingScheme(),
+                rectangle: Cesium.Rectangle.fromDegrees(14.0, 49.0, 24.0, 55.0),
+                enablePickFeatures: false
               })
             );
           } else {
             this.adresyLayer.show = true;
           }
+          this.viewer.imageryLayers.raiseToTop(this.adresyLayer);
         } else if (this.adresyLayer) {
           this.adresyLayer.show = false;
         }
       });
     
-    // Open stret map
+      // Open stret map
       document.getElementById('openstretmap').addEventListener('change', (e) => {
         if (e.target.checked) {
           if (!this.osm) {
@@ -79,6 +84,7 @@ export class LayerManager {
           } else {
             this.osm.show = true;
           }
+          this.viewer.imageryLayers.raiseToTop(this.osm);
         } else if (this.osm) {
           this.osm.show = false;
         }
@@ -104,6 +110,7 @@ export class LayerManager {
           } else {
             this.orto.show = true;
           }
+          this.viewer.imageryLayers.raiseToTop(this.orto);
         } else if (this.orto) {
           this.orto.show = false;
         }
@@ -125,4 +132,5 @@ export class LayerManager {
         callback(e.target.checked);
       });
     }
+    
   }
