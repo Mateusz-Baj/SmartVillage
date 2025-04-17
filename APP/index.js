@@ -92,8 +92,8 @@ async function initializeCesium() {
             idFeatures.forEach((f) => {
               selectedEntitiesColor[id._value] = f.polygon.material;
               f.polygon.material = isHighlightedBuilding 
-                ? Cesium.Color.LEMONCHIFFON.withAlpha(0.7)
-                : Cesium.Color.LIGHTGREEN.withAlpha(0.3);
+                ? Cesium.Color.LIGHTGREEN.withAlpha(0.7)
+                : Cesium.Color.LEMONCHIFFON.withAlpha(0.3);
             });
           };
 
