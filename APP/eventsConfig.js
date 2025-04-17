@@ -1,19 +1,29 @@
+import {isHighlighted, showHighlightIframe} from "./highlightConfig.js";
 
 export const pickFeatureById = (entity) => {
   if (!entity) return;
 
-  //console.log("Wybrany budynek:", entity);
-
   const properties = entity.properties;
+  const entityId = properties?.id?.getValue();
+  
+  // Sprawdź, czy budynek jest na liście ids.json (isHighlighted)
+  if (isHighlighted(entityId)) {
+    hideBuildingInfo()
+    showHighlightIframe(entityId); // Ukryj infobox, jeśli budynek jest na liście
+    return; // Zakończ funkcję, aby nie wyświetlać danych
+  }
+
+  // Jeśli budynek NIE jest na liście, wyświetl dane
   const buildingInfo = {
-    id: properties?.id?.getValue() || "Brak nazwy",
+    id: entityId || "Brak nazwy",
     height: properties?.height?.getValue() || "Brak danych",
     bheight: properties?.bheight?.getValue() || "Brak danych",
     centroid: properties?.centroid?.getValue() || "Brak danych",
   };
-  console.log("Atrybuty:", buildingInfo)
+  
   showBuildingInfo(buildingInfo);
 };
+
 
 // wyśiwetlanie
 const showBuildingInfo = (info) => {
