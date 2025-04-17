@@ -6,12 +6,7 @@ export const pickFeatureById = (entity) => {
   const properties = entity.properties;
   const entityId = properties?.id?.getValue();
   
-  // Sprawdź, czy budynek jest na liście ids.json (isHighlighted)
-  if (isHighlighted(entityId)) {
-    hideBuildingInfo()
-    showHighlightIframe(entityId); // Ukryj infobox, jeśli budynek jest na liście
-    return; // Zakończ funkcję, aby nie wyświetlać danych
-  }
+
 
   // Jeśli budynek NIE jest na liście, wyświetl dane
   const buildingInfo = {

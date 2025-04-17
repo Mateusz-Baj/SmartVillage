@@ -2,7 +2,7 @@ import {config, initialOrientation, initialPosition} from './cesiumConfig.js';
 import {createSelectElement} from './DropDown.js';
 import {pickFeatureById, hideBuildingInfo} from './eventsConfig.js';
 import {LayerManager} from './layerManager.js';
-import {loadHighlightedIds, isHighlighted, hideHighlightIframe} from "./highlightConfig.js";
+import {loadHighlightedIds, isHighlighted, hideHighlightIframe, showHighlightIframe} from "./highlightConfig.js";
 
 Cesium.Ion.defaultAccessToken = config.cesiumToken;
 
@@ -89,15 +89,15 @@ async function initializeCesium() {
         // Kolorowanie po kliknięciu
         let selectedEntitiesColor = {};
 
-        const colorFeautreById = (id, color) => {
-            const idFeatures = features.filter((f) => {
-                return f.properties?.id._value === id._value;
-            });
+        const colorFeatureById = (id, isHighlightedBuilding) => {
+            const idFeatures = features.filter((f) => f.properties?.id._value === id._value);
             idFeatures.forEach((f) => {
-                selectedEntitiesColor[id._value] = f.polygon.material;
-                f.polygon.material = color;
+              selectedEntitiesColor[id._value] = f.polygon.material; // Zapisz oryginalny kolor
+              f.polygon.material = isHighlightedBuilding 
+                ? Cesium.Color.GREEN.withAlpha(0.7)  // Kolor dla budynków z ids.json
+                : Cesium.Color.RED.withAlpha(0.3);    // Domyślny kolor dla innych budynków
             });
-        };
+          };
 
         const resetColors = () => {
             Object.keys(selectedEntitiesColor).forEach((id) => {
@@ -114,27 +114,38 @@ async function initializeCesium() {
         viewer.screenSpaceEventHandler.setInputAction((click) => {
             const pickedObject = viewer.scene.pick(click.position);
             if (Cesium.defined(pickedObject)) {
-                const selectedEntity = pickedObject.id;
-                const entityId = selectedEntity.properties?.id?._value;
-
-                if (Object.keys(selectedEntitiesColor).length > 0) {
-                    resetColors();
-                }
-
-                colorFeautreById(
-                    selectedEntity.properties?.id,
-                    Cesium.Color.RED.withAlpha(0.3)
-                );
-
+              const selectedEntity = pickedObject.id;
+              const entityId = selectedEntity.properties?.id?._value;
+              const isHighlightedBuilding = isHighlighted(entityId); // Sprawdź, czy budynek jest na liście
+          
+              if (Object.keys(selectedEntitiesColor).length > 0) {
+                resetColors(); // Resetuj poprzednie podświetlenia
+              }
+          
+              // Podświetl budynek odpowiednim kolorem
+              colorFeatureById(selectedEntity.properties?.id, isHighlightedBuilding);
+          
+              // Wyświetl informacje (tylko jeśli to NIE jest budynek z ids.json)
+              if (!isHighlightedBuilding) {
                 pickFeatureById(selectedEntity);
-            } else {
-                if (Object.keys(selectedEntitiesColor).length > 0) {
-                    resetColors();
-                }
-                hideBuildingInfo();
+              } else {
+                hideBuildingInfo(); // Ukryj standardowy infobox
+              }
+          
+              // Pokazuj iframe tylko dla budynków z ids.json
+              if (isHighlightedBuilding) {
+                showHighlightIframe(entityId);
+              } else {
                 hideHighlightIframe();
+              }
+            } else {
+              if (Object.keys(selectedEntitiesColor).length > 0) {
+                resetColors();
+              }
+              hideBuildingInfo();
+              hideHighlightIframe();
             }
-        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+          }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     } catch (error) {
         console.error('Błąd GeoJSON:', error);
