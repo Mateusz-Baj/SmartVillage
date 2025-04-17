@@ -9,7 +9,7 @@
 }
 .info-box {
     position: absolute;
-    top: 150px;
+    top: 50px;
     left: 15px;
     width: 500px;
     background: rgba(0, 0, 0, 0.7); 
@@ -23,11 +23,26 @@
 .layers-panel {
   position: absolute;
   top: 10px;
+  width: 250px;
+  z-index: 800;
   right: 10px;
   background: black;
   color: white;
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  z-index: 999;
+}
+
+.highlight-iframe-container {
+  display: none;
+  position: absolute;
+  top: 50px;
+  left: 20px;
+  width: 400px;
+  height: 300px;
+  border: 2px solid #ccc;
+  background: white;
+  border-radius: 8px;
   z-index: 999;
 }

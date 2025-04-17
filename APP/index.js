@@ -41,8 +41,6 @@ async function initializeCesium() {
     }
 
     try {
-        const highlightedIds = await loadHighlightedIds();
-
         const dataSource = await Cesium.GeoJsonDataSource.load(
             config.geoJsonUrl,
             {
@@ -64,9 +62,9 @@ async function initializeCesium() {
             if (entity.polygon) {
                 const entityId = entity.properties?.id?._value;
                 if (isHighlighted(entityId)) {
-                    entity.polygon.material = Cesium.Color.ORANGE.withAlpha(0.5);
+                    entity.polygon.material = Cesium.Color.FORESTGREEN.withAlpha(0.5);
                 } else {
-                    entity.polygon.material = Cesium.Color.BLUE.withAlpha(0.5);
+                    entity.polygon.material = Cesium.Color.DARKORANGE.withAlpha(0.5);
                 }
             }
         });
@@ -92,10 +90,10 @@ async function initializeCesium() {
         const colorFeatureById = (id, isHighlightedBuilding) => {
             const idFeatures = features.filter((f) => f.properties?.id._value === id._value);
             idFeatures.forEach((f) => {
-              selectedEntitiesColor[id._value] = f.polygon.material; // Zapisz oryginalny kolor
+              selectedEntitiesColor[id._value] = f.polygon.material;
               f.polygon.material = isHighlightedBuilding 
-                ? Cesium.Color.GREEN.withAlpha(0.7)  // Kolor dla budynków z ids.json
-                : Cesium.Color.RED.withAlpha(0.3);    // Domyślny kolor dla innych budynków
+                ? Cesium.Color.LEMONCHIFFON.withAlpha(0.7)
+                : Cesium.Color.LIGHTGREEN.withAlpha(0.3);
             });
           };
 
@@ -116,23 +114,17 @@ async function initializeCesium() {
             if (Cesium.defined(pickedObject)) {
               const selectedEntity = pickedObject.id;
               const entityId = selectedEntity.properties?.id?._value;
-              const isHighlightedBuilding = isHighlighted(entityId); // Sprawdź, czy budynek jest na liście
+              const isHighlightedBuilding = isHighlighted(entityId);
           
               if (Object.keys(selectedEntitiesColor).length > 0) {
-                resetColors(); // Resetuj poprzednie podświetlenia
+                resetColors();
               }
-          
-              // Podświetl budynek odpowiednim kolorem
               colorFeatureById(selectedEntity.properties?.id, isHighlightedBuilding);
-          
-              // Wyświetl informacje (tylko jeśli to NIE jest budynek z ids.json)
               if (!isHighlightedBuilding) {
                 pickFeatureById(selectedEntity);
               } else {
-                hideBuildingInfo(); // Ukryj standardowy infobox
+                hideBuildingInfo();
               }
-          
-              // Pokazuj iframe tylko dla budynków z ids.json
               if (isHighlightedBuilding) {
                 showHighlightIframe(entityId);
               } else {

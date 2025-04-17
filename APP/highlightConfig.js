@@ -17,7 +17,7 @@ export const showHighlightIframe = (entityId) => {
   const iframe = document.getElementById("highlight-iframe");
   const container = document.getElementById("highlight-iframe-container");
   if (iframe && container) {
-    iframe.src = `/html/${entityId}.html`; // np. /html/mlyn.html
+    iframe.src = `http://localhost:8080/data/piskorzow/html/${entityId}.html`;
     container.style.display = "block";
   }
 };

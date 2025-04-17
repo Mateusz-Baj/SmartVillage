@@ -1,14 +1,8 @@
-import {isHighlighted, showHighlightIframe} from "./highlightConfig.js";
-
 export const pickFeatureById = (entity) => {
   if (!entity) return;
 
   const properties = entity.properties;
   const entityId = properties?.id?.getValue();
-  
-
-
-  // Jeśli budynek NIE jest na liście, wyświetl dane
   const buildingInfo = {
     id: entityId || "Brak nazwy",
     height: properties?.height?.getValue() || "Brak danych",
