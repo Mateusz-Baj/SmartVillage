@@ -45,7 +45,6 @@ async function initializeCesium() {
             config.geoJsonUrl,
             {
                 clampToGround: false,
-                fill: Cesium.Color.BLUE.withAlpha(0.5),
                 stroke: Cesium.Color.BLACK,
                 strokeWidth: 2,
             }
