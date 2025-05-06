@@ -6,6 +6,7 @@ export class LayerManager {
       this.initLayersTree();
       this.osm = null
       this.orto = null
+      this.row = null
     }
   
     initLayersTree() {
@@ -29,6 +30,10 @@ export class LayerManager {
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="orto">
             <label class="form-check-label" for="orto">Ortofotomapa</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="row">
+            <label class="form-check-label" for="row">Ścierzka rowerowa</label>
           </div>
         </div>
       `;
@@ -115,6 +120,115 @@ export class LayerManager {
           this.orto.show = false;
         }
       });
+      // scierzka rowerowa
+      document.getElementById('row').addEventListener('change', async (e) => {
+        if (e.target.checked) {
+            if (!this.row) {
+                try {
+                    const response = await fetch('http://localhost:8080/data/piskorzow/row.json');
+                    const json = await response.json();
+                    
+                    const feature = json.find(f => f.polyline && f.polyline.positions && f.polyline.positions.cartesian);
+                    const rawPositions = feature.polyline.positions.cartesian;
+                    
+                    const positions = [];
+                    for (let i = 0; i < rawPositions.length; i += 3) {
+                        positions.push(
+                            new Cesium.Cartesian3(rawPositions[i], rawPositions[i + 1], rawPositions[i + 2])
+                        );
+                    }
+                    
+                    // długosc sciezki
+                    let totalDistance = 0;
+                    const segmentDistances = [];
+                    for (let i = 1; i < positions.length; i++) {
+                        const dist = Cesium.Cartesian3.distance(positions[i-1], positions[i]);
+                        totalDistance += dist;
+                        segmentDistances.push(dist);
+                    }
+                    
+                    totalDistance = totalDistance / 1000;
+                    
+                    const lineDataSource = new Cesium.CustomDataSource('SciezkaRowerowa');
+                    lineDataSource.entities.add({
+                        id: feature.id,
+                        polyline: {
+                            positions,
+                            width: 3,
+                            material: Cesium.Color.RED.withAlpha(0.8),
+                            clampToGround: true,
+                        },
+                    });
+                    
+                    //suwak i etykieta
+                    this.slider = document.createElement('input');
+                    this.slider.type = 'range';
+                    this.slider.min = 0;
+                    this.slider.max = positions.length - 2;
+                    this.slider.value = 0;
+                    this.slider.step = 1;
+                    this.slider.style.width = '300px';
+                    this.slider.style.position = 'absolute';
+                    this.slider.style.bottom = '20px';
+                    this.slider.style.left = '20px';
+                    this.slider.style.zIndex = '999';
+                    document.body.appendChild(this.slider);
+                    
+                    this.distanceLabel = document.createElement('div');
+                    this.distanceLabel.style.position = 'absolute';
+                    this.distanceLabel.style.bottom = '50px';
+                    this.distanceLabel.style.left = '20px';
+                    this.distanceLabel.style.color = 'black';
+                    this.distanceLabel.style.backgroundColor = 'OldLace';
+                    this.distanceLabel.style.padding = '5px';
+                    this.distanceLabel.style.borderRadius = '3px';
+                    this.distanceLabel.innerHTML = `Całkowita długość: ${totalDistance.toFixed(2)} km`;
+                    document.body.appendChild(this.distanceLabel);
+                    
+                    // suwak
+                    this.slider.addEventListener('input', (e) => {
+                        const segmentIndex = parseInt(e.target.value);
+                        let partialDistance = 0;
+                        
+                        for (let i = 0; i <= segmentIndex; i++) {
+                            partialDistance += segmentDistances[i];
+                        }
+                        
+                        partialDistance = partialDistance / 1000;
+                        
+                        // podswietlanie scierzki
+                        if (this.highlightedSegment) {
+                            lineDataSource.entities.remove(this.highlightedSegment);
+                        }
+                        
+                        this.highlightedSegment = lineDataSource.entities.add({
+                            polyline: {
+                                positions: positions.slice(0, segmentIndex + 2),
+                                width: 5,
+                                material: Cesium.Color.GOLD,
+                                clampToGround: true
+                            }
+                        });
+                        
+                        this.distanceLabel.innerHTML = `Długość: ${partialDistance.toFixed(2)} km / ${totalDistance.toFixed(2)} km`;
+                    });
+                    
+                    this.row = lineDataSource;
+                    this.viewer.dataSources.add(this.row);
+                } catch (err) {
+                    console.error('Błąd ładowania ścieżki rowerowej:', err);
+                }
+            } else {
+                this.row.show = true;
+                if (this.slider) this.slider.style.display = 'block';
+                if (this.distanceLabel) this.distanceLabel.style.display = 'block';
+            }
+        } else if (this.row) {
+            this.row.show = false;
+            if (this.slider) this.slider.style.display = 'none';
+            if (this.distanceLabel) this.distanceLabel.style.display = 'none';
+        }
+    });  
     }
     addLayer(name, callback) {
       const container = document.querySelector('.layers-panel');
