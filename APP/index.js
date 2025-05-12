@@ -49,7 +49,7 @@ async function initializeCesium() {
     const dataSource = await Cesium.GeoJsonDataSource.load(config.geoJsonUrl, {
       clampToGround: false,
       stroke: Cesium.Color.BLACK,
-      strokeWidth: 1,
+      strokeWidth: 0.1,
     });
 
     viewer.dataSources.add(dataSource);
@@ -90,7 +90,7 @@ features.forEach((feature) => {
 
 const options = highlightedFeatures.map((feature, index) => ({
     value: index,
-    textContent: feature.properties?.name?._value || feature.properties?.id?._value || `Budynek ${index + 1}`,
+    textContent: feature.properties?.id?._value || feature.properties?.name?._value || `Budynek ${index + 1}`,
 }));
 
 const DropDown = createSelectElement(options, 'toolbar');
