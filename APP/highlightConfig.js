@@ -1,5 +1,4 @@
 export let highlightedIds = [];
-
 export const loadHighlightedIds = async (url) => {
   try {
     const response = await fetch(url);

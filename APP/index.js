@@ -60,18 +60,24 @@ async function initializeCesium() {
     //kolorowanie budynków
     features.forEach((entity) => {
       if (entity.polygon && entity.properties) {
-          const surfaceType = entity.properties.surface?._value;
-  
-          if (surfaceType === "roof") {
-              entity.polygon.material = Cesium.Color.fromCssColorString("#b22222");
-          } else if (surfaceType === "wall") {
-              entity.polygon.material = Cesium.Color.WHITE;
-          } else {
-              entity.polygon.material = Cesium.Color.GRAY.withAlpha(0.5);
-          }
-          entity.polygon.outline = true;
+        const surfaceType = entity.properties.surface?._value;
+        const entityId = entity.properties?.id?._value;
+        const isHighlightedBuilding = isHighlighted(entityId);
+    
+        if (surfaceType === "roof") {
+          entity.polygon.material = isHighlightedBuilding
+            ? Cesium.Color.LIGHTBLUE // wyróżniony dach
+            : Cesium.Color.fromCssColorString("#b22222"); // zwykły dach
+        } else if (surfaceType === "wall") {
+          entity.polygon.material = isHighlightedBuilding
+            ? Cesium.Color.GRAY
+            : Cesium.Color.WHITE;
+        }
+    
+        entity.polygon.outline = true;
       }
-  });
+    });
+    
 
     // Przelot do budynków
     viewer.flyTo(dataSource.entities);
@@ -120,17 +126,26 @@ DropDown?.addEventListener('change', (event) => {
     const resetColors = () => {
       Object.keys(selectedEntitiesColor).forEach((id) => {
         selectedEntitiesColor[id].forEach(({ entity, surface }) => {
+          const isHighlightedBuilding = isHighlighted(id);
+    
           if (surface === "roof") {
-            entity.polygon.material = Cesium.Color.fromCssColorString("#b22222");
+            entity.polygon.material = isHighlightedBuilding
+              ? Cesium.Color.LIGHTBLUE
+              : Cesium.Color.fromCssColorString("#b22222");
           } else if (surface === "wall") {
-            entity.polygon.material = Cesium.Color.WHITE;
-          } else {
-            entity.polygon.material = Cesium.Color.GRAY.withAlpha(0.5);
+            entity.polygon.material = isHighlightedBuilding
+              ? Cesium.Color.GRAY
+              : Cesium.Color.WHITE;
           }
         });
       });
       selectedEntitiesColor = {};
     };
+
+    document.getElementById("close-iframe-button")?.addEventListener("click", () => {
+      hideHighlightIframe();
+      resetColors();
+    });
 
     viewer.screenSpaceEventHandler.setInputAction((click) => {
       const pickedObject = viewer.scene.pick(click.position);

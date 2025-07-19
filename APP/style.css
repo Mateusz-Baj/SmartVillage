@@ -9,7 +9,7 @@
 }
 .info-box {
     position: absolute;
-    top: 50px;
+    top: 20px;
     left: 15px;
     width: 500px;
     background: OldLace; 
@@ -39,20 +39,38 @@
 .highlight-iframe-container {
   display: none;
   position: absolute;
-  top: 50px;
-  left: 20px;
-  width: 400px;
-  height: 300px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
   border: 2px solid black;
   background: OldLace;
-  border-radius: 8px;
+  border-radius: 7px;
   z-index: 999;
 }
 
-.toolbar {
+.close-iframe-button {
   position: absolute;
-  top: 0px;
-  left: -14px;
+  top: -5px;
+  left: 4.5px;
+  background: transparent;
+  border:none;
+  color: black;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.close-iframe-button:hover {
+  color: rgb(0, 106, 16);
+}
+
+.toolbar {
+  position: fixed;
+  top: 200px;
+  left: 88.4%;
   z-index: 999;
 }
 
@@ -60,7 +78,7 @@
 .toolbar select.cesium-button {
   background-color: OldLace;
   color: Black;
-  border: 1px solid #444;
+  border: 2px solid #444;
   border-radius: 4px;
   padding: 5px 10px;
   font-size: 14px;
