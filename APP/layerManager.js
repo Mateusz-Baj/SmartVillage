@@ -25,7 +25,7 @@ export class LayerManager {
           </div>
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="adresyToggle">
-            <label class="form-check-label" for="adresyToggle">Punkty adresowe</label>
+            <label class="form-check-label" for="adresyToggle">Ulice</label>
           </div>
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="orto">
